@@ -1,4 +1,4 @@
-import type { AccessLogItem as APIAccessLogBase } from '@/api/modules/accessLog'
+import type { ApiAccessLogsItem } from '@/api/modules/apiAccessLogs'
 import type { AuditLogsItem as AuditLogBase } from '@/api/modules/auditLogs'
 
 export interface AuditLogStructuredFields {
@@ -8,10 +8,6 @@ export interface AuditLogStructuredFields {
   change_summary?: string | null
 }
 
-export interface APIAccessLogTimeFields {
-  created_at?: string
-}
-
 export type AuditLogViewItem = AuditLogBase & AuditLogStructuredFields
 
-export type APIAccessLogViewItem = APIAccessLogBase & APIAccessLogTimeFields
+export type APIAccessLogViewItem = ApiAccessLogsItem

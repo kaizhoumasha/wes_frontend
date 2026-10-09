@@ -80,7 +80,7 @@ describe('contract browser module ownership', () => {
     '/api/v1/wms/events': {},
     '/api/v1/callback/event': {},
     '/api/v1/callback/result': {},
-    '/api/v1/callback/logs/query': {}
+    '/api/v1/sys/api-access-logs/query': {}
   }
 
   const systemPaths = ['/api/v1/wms/events', '/api/v1/callback/event', '/api/v1/callback/result']
@@ -100,10 +100,10 @@ describe('contract browser module ownership', () => {
     }
   })
 
-  it('keeps callback administration paths browser-owned', () => {
+  it('keeps unified sys log administration paths browser-owned', () => {
     expect(() =>
       assertNoSystemOwnedPathsInModules(
-        "contractMethods.post('/api/v1/callback/logs/query')",
+        "contractMethods.post('/api/v1/sys/api-access-logs/query')",
         currentPaths
       )
     ).not.toThrow()

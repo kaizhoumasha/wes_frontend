@@ -4,16 +4,16 @@
  * ⚠️ 请勿手动编辑此文件
  * 此文件由 scripts/generate-permissions.ts 自动生成
  *
- * 权限分组: user_api:api-auth:apiaccesslog
+ * 权限分组: user_api:sys:apiaccesslog
  *
  * 更新权限: pnpm generate:permissions
  */
 
-export const API_AUTH_APIACCESSLOG_PERMISSION = {
+export const SYS_APIACCESSLOG_PERMISSION = {
   /** 页面访问权限 */
-  page: 'api-auth:apiaccesslog:list',
+  page: 'sys:apiaccesslog:list',
   /** 列表查询权限 */
-  list: 'api-auth:apiaccesslog:list',
+  list: 'sys:apiaccesslog:list',
   /** 详情查看权限 */
-  detail: 'api-auth:apiaccesslog:detail',
+  detail: 'sys:apiaccesslog:detail',
 } as const

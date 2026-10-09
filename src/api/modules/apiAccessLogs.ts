@@ -6,7 +6,7 @@
  * ⚠️  请勿手动编辑 AUTO GENERATED 区域
  * 此文件由 scripts/generate-api-types.ts 自动生成
  *
- * 资源: /api/v1/api_auth/access-log
+ * 资源: /api/v1/sys/api-access-logs
  */
 import { contractMethods } from '@/api/contract/client'
 import type {
@@ -19,30 +19,30 @@ import type {
 import type { components, paths } from '@/api/generated/openapi-types'
 import { createReadonlyCrudRequestAdapterFromMethods } from '@/api/base/createReadonlyCrudRequestAdapter'
 
-const ACCESS_LOG_COLLECTION_PATH = '/api/v1/api_auth/access-log' as const
+const API_ACCESS_LOGS_COLLECTION_PATH = '/api/v1/sys/api-access-logs' as const
 
 type EnsureEntityId<TItem> = TItem extends { id?: infer TId }
   ? Omit<TItem, 'id'> & { id: Exclude<TId, null | undefined> }
   : TItem
 
-export type AccessLogItem = EnsureEntityId<ContractResponseData<'/api/v1/api_auth/access-log/{id}', 'get'>>
+export type ApiAccessLogsItem = EnsureEntityId<ContractResponseData<'/api/v1/sys/api-access-logs/{id}', 'get'>>
 export type ReadonlyInput = Record<string, never>
 
-const baseAccessLogApiMethods = {
-  getById(params: ContractPathParams<'/api/v1/api_auth/access-log/{id}', 'get'>, query?: ContractQueryParams<'/api/v1/api_auth/access-log/{id}', 'get'>, config?: ContractRequestConfig) {
-    return contractMethods.get('/api/v1/api_auth/access-log/{id}', { params, query, config })
+const baseApiAccessLogsApiMethods = {
+  getById(params: ContractPathParams<'/api/v1/sys/api-access-logs/{id}', 'get'>, query?: ContractQueryParams<'/api/v1/sys/api-access-logs/{id}', 'get'>, config?: ContractRequestConfig) {
+    return contractMethods.get('/api/v1/sys/api-access-logs/{id}', { params, query, config })
   },
 
-  query(body: ContractRequestBody<'/api/v1/api_auth/access-log/query', 'post'>, config?: ContractRequestConfig) {
-    return contractMethods.post('/api/v1/api_auth/access-log/query', { body, config })
+  query(body: ContractRequestBody<'/api/v1/sys/api-access-logs/query', 'post'>, config?: ContractRequestConfig) {
+    return contractMethods.post('/api/v1/sys/api-access-logs/query', { body, config })
   }
 }
 
-export const accessLogApiMethods = {
-  ...baseAccessLogApiMethods,
+export const apiAccessLogsApiMethods = {
+  ...baseApiAccessLogsApiMethods,
 }
 
-export const accessLogApi = createReadonlyCrudRequestAdapterFromMethods(accessLogApiMethods)
+export const apiAccessLogsApi = createReadonlyCrudRequestAdapterFromMethods(apiAccessLogsApiMethods)
 // ==================== AUTO GENERATED END ====================
 
 // ==================== CUSTOM METHODS START ====================

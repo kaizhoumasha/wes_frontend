@@ -1,9 +1,13 @@
-import { accessLogApiMethods } from '@/api/modules/accessLog'
-import { API_AUTH_PERMISSIONS } from '@/api/generated/permissions'
+import { apiAccessLogsApiMethods } from '@/api/modules/apiAccessLogs'
+import { SYS_PERMISSIONS } from '@/api/generated/permissions'
 import { createCrudPageConfigFromResource } from '@/components/common/crud-page/createCrudPageConfigFromResource'
 import type { CrudPageConfig, CrudPageFeatures } from '@/components/common/crud-page/types'
 import type { CrudPageDetailConfig } from '@/components/common/crud-page/detail/types'
-import { apiAccessLogPageFieldConfig } from './fieldConfig'
+import {
+  apiAccessLogPageFieldConfig,
+  API_ACCESS_LOG_DIRECTION_LABELS,
+  API_ACCESS_LOG_DELIVERY_LABELS
+} from './fieldConfig'
 import {
   createRecentHoursQuickPreset,
   createThresholdQuickPreset
@@ -23,21 +27,26 @@ const API_ACCESS_LOG_PAGE_RESOURCE = {
   key: 'api-access-logs',
   title: {
     text: 'API 访问日志',
-    subtitle: 'API 异常排查与性能分析',
+    subtitle: 'WMS、ECS 等外部系统交互',
     icon: 'ep:histogram'
   },
-  methods: accessLogApiMethods,
+  methods: apiAccessLogsApiMethods,
   permissions: {
-    create: API_AUTH_PERMISSIONS.apiaccesslog.list,
-    update: API_AUTH_PERMISSIONS.apiaccesslog.detail,
-    delete: API_AUTH_PERMISSIONS.apiaccesslog.detail
+    create: SYS_PERMISSIONS.apiaccesslog.list,
+    update: SYS_PERMISSIONS.apiaccesslog.detail,
+    delete: SYS_PERMISSIONS.apiaccesslog.detail
   },
   pageSize: 20,
-  defaultSort: [{ field: 'created_at', order: 'desc' as const }]
+  defaultSort: [
+    { field: 'created_at', order: 'desc' as const },
+    { field: 'id', order: 'desc' as const }
+  ]
 }
 
 const API_ACCESS_LOG_PAGE_TABLE: Partial<APIAccessLogPageConfig['table']> = {
   selectable: false,
+  emptyText:
+    '当前查询范围内暂无外部交互记录。可调整筛选或刷新；日志可能延迟或漏记，无记录不代表请求未到达。',
   actionsColumn: {
     width: 88,
     fixed: 'right',
@@ -60,22 +69,52 @@ const API_ACCESS_LOG_PAGE_FEATURES: CrudPageFeatures = {
 
 const API_ACCESS_LOG_QUICK_PRESETS = [
   // 时间粒度细化（从 Toolbar 移入）
-  createRecentHoursQuickPreset('created_at', '访问时间', 0.25),  // 最近 15 分钟
-  createRecentHoursQuickPreset('created_at', '访问时间', 1),     // 最近 1 小时
-  createRecentHoursQuickPreset('created_at', '访问时间', 4),     // 最近 4 小时
+  createRecentHoursQuickPreset('created_at', '记录时间', 0.25), // 最近 15 分钟
+  createRecentHoursQuickPreset('created_at', '记录时间', 1), // 最近 1 小时
+  createRecentHoursQuickPreset('created_at', '记录时间', 4), // 最近 4 小时
 
   // 异常定位（高价值）
-  createThresholdQuickPreset('api-5xx-only', 'status_code', '仅 5xx 错误', 'gte', 500, '优先定位服务端异常'),
-  createThresholdQuickPreset('api-failed-only', 'status_code', '仅失败请求', 'gte', 400, '筛出所有 4xx / 5xx 请求'),
-  createThresholdQuickPreset('api-slow-1s', 'response_time_ms', '慢请求 >= 1s', 'gte', 1000, '筛出耗时至少 1 秒的请求'),
-  createThresholdQuickPreset('api-slow-3s', 'response_time_ms', '慢请求 >= 3s', 'gte', 3000, '筛出耗时至少 3 秒的请求')
+  createThresholdQuickPreset(
+    'api-5xx-only',
+    'status_code',
+    'HTTP 5xx',
+    'gte',
+    500,
+    '优先定位服务端异常'
+  ),
+  createThresholdQuickPreset(
+    'api-failed-only',
+    'status_code',
+    'HTTP 4xx/5xx',
+    'gte',
+    400,
+    '筛出所有 4xx / 5xx 请求'
+  ),
+  createThresholdQuickPreset(
+    'api-slow-1s',
+    'response_time_ms',
+    '慢请求 >= 1s',
+    'gte',
+    1000,
+    '筛出耗时至少 1 秒的请求'
+  ),
+  createThresholdQuickPreset(
+    'api-slow-3s',
+    'response_time_ms',
+    '慢请求 >= 3s',
+    'gte',
+    3000,
+    '筛出耗时至少 3 秒的请求'
+  )
 ]
 
-const API_ACCESS_LOG_TOOLBAR_ACTIONS: NonNullable<APIAccessLogPageConfig['extensions']>['toolbarActions'] = [
+const API_ACCESS_LOG_TOOLBAR_ACTIONS: NonNullable<
+  APIAccessLogPageConfig['extensions']
+>['toolbarActions'] = [
   // 核心异常入口（5xx 优先）
   {
     key: 'api-5xx-only',
-    label: '仅 5xx',
+    label: 'HTTP 5xx',
     icon: 'ep:warning-filled',
     type: 'danger',
     handler: context => context.applyQuickPreset('api-5xx-only', { replace: true }),
@@ -103,50 +142,140 @@ const API_ACCESS_LOG_TOOLBAR_ACTIONS: NonNullable<APIAccessLogPageConfig['extens
 const API_ACCESS_LOG_PAGE_DETAIL: CrudPageDetailConfig<APIAccessLog> = {
   mode: 'drawer',
   size: 'lg',
-  title: item => item.request_id || `访问日志 #${item.id}`,
+  title: item => `访问日志 #${item.id}`,
   entityTypeLabel: 'API 访问日志',
   sections: [
     {
-      title: '请求摘要',
+      title: '交互摘要',
       weight: 'primary',
       fields: [
         { key: 'created_at', layout: 'half', formatter: 'datetime' },
-        { key: 'app_name', layout: 'half', formatter: createQuickFilterDetailFormatter({ field: 'app_name' }) },
-        { key: 'app_id', layout: 'half' },
-        { key: 'request_id', layout: 'full', formatter: createQuickFilterDetailFormatter({ field: 'request_id' }) },
-        { key: 'method', layout: 'half', formatter: createQuickFilterDetailFormatter({ field: 'method' }) },
-        { key: 'path', layout: 'half', formatter: createQuickFilterDetailFormatter({ field: 'path' }) },
+        {
+          key: 'system_id',
+          layout: 'half',
+          formatter: createQuickFilterDetailFormatter({
+            field: 'system_id',
+            label: value => String(value).toUpperCase()
+          })
+        },
+        {
+          key: 'direction',
+          layout: 'half',
+          formatter: createQuickFilterDetailFormatter({
+            field: 'direction',
+            label: value => API_ACCESS_LOG_DIRECTION_LABELS[String(value)] ?? String(value)
+          })
+        },
+        {
+          key: 'method',
+          layout: 'half',
+          formatter: createQuickFilterDetailFormatter({ field: 'method' })
+        },
+        {
+          key: 'path',
+          layout: 'full',
+          formatter: createQuickFilterDetailFormatter({ field: 'path' })
+        },
         {
           key: 'status_code',
           layout: 'half',
+          showWhen: value => value != null,
           formatter: createQuickFilterDetailFormatter({
             field: 'status_code',
-            tagType: value => resolveStatusCodeTagType(value)
+            tagType: resolveStatusCodeTagType
           })
         },
-        { key: 'response_time_ms', layout: 'half', formatter: value => formatDurationFromMilliseconds(value) },
-        { key: 'ip_address', layout: 'half', formatter: createQuickFilterDetailFormatter({ field: 'ip_address' }) },
+        // 全局空值处理先于 formatter，说明使用已有非空 ID 元数据承载。
+        {
+          key: 'id',
+          label: 'HTTP 状态',
+          layout: 'half',
+          showWhen: (_value, item) => item.status_code == null,
+          formatter: () => '无 HTTP 响应'
+        },
+        {
+          key: 'response_time_ms',
+          layout: 'half',
+          formatter: value => formatDurationFromMilliseconds(value)
+        },
+        {
+          key: 'delivery_state',
+          layout: 'half',
+          formatter: createQuickFilterDetailFormatter({
+            field: 'delivery_state',
+            label: value => API_ACCESS_LOG_DELIVERY_LABELS[String(value)] ?? String(value)
+          })
+        },
+        {
+          key: 'error_code',
+          layout: 'half',
+          formatter: createQuickFilterDetailFormatter({ field: 'error_code' })
+        }
+      ]
+    },
+    {
+      title: '追踪与地址',
+      weight: 'secondary',
+      fields: [
+        {
+          key: 'peer_address',
+          layout: 'full',
+          formatter: createQuickFilterDetailFormatter({ field: 'peer_address' })
+        },
+        {
+          key: 'request_id',
+          layout: 'full',
+          formatter: createQuickFilterDetailFormatter({ field: 'request_id' })
+        },
+        {
+          key: 'trace_id',
+          layout: 'full',
+          formatter: createQuickFilterDetailFormatter({ field: 'trace_id' })
+        },
+        {
+          key: 'event_id',
+          layout: 'full',
+          formatter: createQuickFilterDetailFormatter({ field: 'event_id' })
+        },
+        {
+          key: 'causation_id',
+          layout: 'full',
+          formatter: createQuickFilterDetailFormatter({ field: 'causation_id' })
+        },
         { key: 'id', layout: 'half' }
       ]
     },
     {
-      title: '请求上下文',
-      weight: 'secondary',
+      title: '已保存快照',
+      weight: 'tertiary',
       fields: [
-        { key: 'user_agent', layout: 'full' },
-        { key: 'error_message', layout: 'full' }
+        { key: 'details', layout: 'full', formatter: 'json', showWhen: value => value != null },
+        {
+          key: 'id',
+          label: '',
+          layout: 'full',
+          showWhen: (_value, item) => item.details == null,
+          formatter: () => '此记录未保存详情快照。'
+        },
+        {
+          key: 'direction',
+          label: '',
+          layout: 'full',
+          showWhen: (_value, item) => item.details == null && item.direction === 'OUTBOUND',
+          formatter: () => '本次出站日志仅保存交互元数据。'
+        }
       ]
     }
   ]
 }
 
 export function createAPIAccessLogPageConfig(): APIAccessLogPageConfig {
-  return createCrudPageConfigFromResource<APIAccessLog, ReadonlyInput, ReadonlyInput>({
+  const config = createCrudPageConfigFromResource<APIAccessLog, ReadonlyInput, ReadonlyInput>({
     resource: API_ACCESS_LOG_PAGE_RESOURCE,
     fieldConfig: {
       ...apiAccessLogPageFieldConfig,
       search: {
-      ...apiAccessLogPageFieldConfig.search,
+        ...apiAccessLogPageFieldConfig.search,
         quickPresets: API_ACCESS_LOG_QUICK_PRESETS
       }
     },
@@ -157,4 +286,22 @@ export function createAPIAccessLogPageConfig(): APIAccessLogPageConfig {
       toolbarActions: API_ACCESS_LOG_TOOLBAR_ACTIONS
     }
   })
+  for (const column of apiAccessLogPageFieldConfig.table.defaultColumns) {
+    if (
+      [
+        'peer_address',
+        'delivery_state',
+        'error_code',
+        'request_id',
+        'trace_id',
+        'event_id',
+        'causation_id',
+        'method',
+        'id'
+      ].includes(column.key)
+    ) {
+      column.visibleFrom = null
+    }
+  }
+  return config
 }

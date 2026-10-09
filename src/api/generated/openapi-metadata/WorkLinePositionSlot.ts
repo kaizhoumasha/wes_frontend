@@ -53,6 +53,13 @@ export const WorkLinePositionSlotMetadata = {
         "STATION"
       ]
     },
+    "required": {
+      "title": "Required",
+      "type": "boolean",
+      "required": false,
+      "nullable": false,
+      "default": true
+    },
     "slot_key": {
       "title": "Slot Key",
       "type": "string",

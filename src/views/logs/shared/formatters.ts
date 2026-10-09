@@ -65,7 +65,7 @@ export function formatDurationFromMilliseconds(value: unknown): string {
   const numericValue = normalizeNumber(value)
 
   if (numericValue === null) {
-    return '-'
+    return '—'
   }
 
   if (numericValue >= 1000) {

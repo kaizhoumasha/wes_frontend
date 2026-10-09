@@ -1,4 +1,4 @@
-/** @openapi-sha256 0fd67af6e0cfb4375480f259db0b3270a4614cd30848e6a30ff9670b9b982a19 */
+/** @openapi-sha256 2053e122a339f5ac11861320ffc9343488f5e8884e0b1576f9773698a451af81 */
 /**
  * 自动生成的 OpenAPI 类型定义
  *
@@ -620,40 +620,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/api_auth/access-log/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [api-auth:apiaccesslog:detail] 获取APIAccessLog */
-        get: operations["access_log_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/api_auth/access-log/query": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [api-auth:apiaccesslog:list] 获取APIAccessLog列表 */
-        post: operations["access_log_query"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/api_auth/applications": {
         parameters: {
             query?: never;
@@ -1165,100 +1131,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/callback/logs/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** [callback:callback_log:detail] 获取CallbackLog */
-        get: operations["logs_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/callback/logs/query": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** [callback:callback_log:list] 获取CallbackLog列表 */
-        post: operations["logs_query"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/callback/logs/request/{request_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * [callback:callback_log:detail-by-request-id] 根据请求 ID 查询回调日志
-         * @description 根据 request_id 查询单条回调日志记录
-         */
-        get: operations["callback_logs_request_by_request_id_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/callback/logs/subject/{subject_code}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * [callback:callback_log:list-by-subject-code] 根据回调主体编码查询回调日志
-         * @description 查询指定回调主体最近的回调记录。设备回调主体通常是 device_code。
-         */
-        get: operations["callback_logs_subject_by_subject_code_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/callback/logs/trace/{trace_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * [callback:callback_log:list-by-trace-id] 根据 Trace ID 查询回调日志
-         * @description 根据 trace_id 查询所有相关的回调日志（用于串联整个流程）
-         */
-        get: operations["callback_logs_trace_by_trace_id_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/callback/result": {
         parameters: {
             query?: never;
@@ -1511,6 +1383,40 @@ export interface paths {
         get: operations["device_evidences_stream_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sys/api-access-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** [sys:apiaccesslog:detail] 获取 API 访问日志详情 */
+        get: operations["sys_apiaccesslog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sys/api-access-logs/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** [sys:apiaccesslog:list] 查询 API 访问日志 */
+        post: operations["sys_apiaccesslog_query"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1882,7 +1788,7 @@ export interface paths {
          *     | 1 | 选择「1. 发布新的 PickingTask」 | 新 `task_id`、`queue_revision=1`；首次 `202 / RECEIVED`，任务进入 QUEUED |
          *     | 2（可选） | 选择「2. 调整队列」 | 同一任务仍为 QUEUED；使用新 identity 和更高 queue_revision，首次 `202 / RECEIVED` |
          *     | 3 | 等待 WES 发起 `outbound.picking_task.prepare@v1` | WES 已通过实际业务入口选中任务和 WorkLine；WMS 在 decisions 端点返回 `202 / PREPARE_ACCEPTED`、相同 operation_id 和 `data={}` |
-         *     | 4 | 选择「3. 首批计划」发布 revision 1 | 同一任务已绑定且 WES 保存匹配的 prepare 成功响应；必须带 target_rack，成功 `202 / RECEIVED` |
+         *     | 4 | 选择「3. 首批计划」发布 revision 1 | 同一任务已绑定且 WES 保存匹配的 prepare 成功响应；MANUAL 可省略 target_rack 并新增来源，AUTO 必填；成功 `202 / RECEIVED` |
          *     | 5 | 选择「4. 追加来源」发布 revision 2 | revision 1 已获成功 ACK；只追加新来源，不再带 target_rack，成功 `202 / RECEIVED` |
          *
          *     **测试边界：** 发布任务不会自动证明工作线已启动。零业务插件环境可以验证 issued/queue_changed，
@@ -1900,7 +1806,7 @@ export interface paths {
          *     | --- | --- | --- |
          *     | 1. 发布新的 PickingTask | `202 / RECEIVED`，`data={}` | 创建一个 QUEUED 任务，queue_revision=1、dispatch_sequence=10 |
          *     | 2. 调整队列 | `202 / RECEIVED`，`data={}` | 同一任务仍为 QUEUED，queue_revision=2、dispatch_sequence=20、not_before=0（无延后准入） |
-         *     | 3. 首批计划 | `202 / RECEIVED`，`data={}` | 在 prepare 成功前提下原子保存 revision 1、接料架面和来源，任务进入 EXECUTING |
+         *     | 3. 首批计划 | `202 / RECEIVED`，`data={}` | 在 prepare 成功前提下原子保存 revision 1、可选接料架面和来源，任务进入 EXECUTING |
          *     | 4. 追加来源 | `202 / RECEIVED`，`data={}` | last_applied_plan_revision=2，新来源只追加一次，原接料架面保持不变 |
          *     | 上述任一步成功后原样重放 | `200 / DUPLICATE`，`data={}` | 不重复创建、不重复应用，保留首次接收时间 |
          *
@@ -2915,62 +2821,158 @@ export interface components {
         /** APIAccessLogResponse */
         APIAccessLogResponse: {
             /**
-             * App Id
-             * @description 应用ID
+             * Causation Id
+             * @description 因果事件 ID
              */
-            app_id: string;
-            /**
-             * App Name
-             * @description 应用名称
-             */
-            app_name: string;
+            causation_id?: string | null;
             /**
              * Created At
              * Format: date-time
              */
             created_at: string;
             /**
-             * Error Message
-             * @description 错误信息
+             * Delivery State
+             * @description 出站送达事实
              */
-            error_message?: string | null;
+            delivery_state?: string | null;
+            /** Details */
+            details?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Direction
+             * @description 交互方向
+             * @enum {string}
+             */
+            direction: "INBOUND" | "OUTBOUND";
+            /**
+             * Error Code
+             * @description 稳定错误分类
+             */
+            error_code?: string | null;
+            /**
+             * Event Id
+             * @description 事件 ID
+             */
+            event_id?: string | null;
             /** Id */
             id: number;
             /**
-             * Ip Address
-             * @description 客户端IP
-             */
-            ip_address: string;
-            /**
              * Method
-             * @description HTTP方法
+             * @description HTTP 方法
              */
             method: string;
             /**
              * Path
-             * @description 请求路径
+             * @description 实际路径，不含 query
              */
             path: string;
             /**
-             * Request Id
-             * @description 请求ID
+             * Peer Address
+             * @description 对端地址
              */
-            request_id: string;
+            peer_address?: string | null;
+            /**
+             * Request Id
+             * @description 请求或 attempt ID
+             */
+            request_id?: string | null;
             /**
              * Response Time Ms
-             * @description 响应时间(毫秒)
+             * @description 测得的交互耗时，毫秒
              */
-            response_time_ms: number;
+            response_time_ms?: number | null;
             /**
              * Status Code
-             * @description 响应状态码
+             * @description 实际 HTTP 状态，无响应为 null
              */
-            status_code: number;
+            status_code?: number | null;
             /**
-             * User Agent
-             * @description User-Agent
+             * System Id
+             * @description 外部系统标识
              */
-            user_agent?: string | null;
+            system_id: string;
+            /**
+             * Trace Id
+             * @description Trace ID
+             */
+            trace_id?: string | null;
+        };
+        /** APIAccessLogSummary */
+        APIAccessLogSummary: {
+            /**
+             * Causation Id
+             * @description 因果事件 ID
+             */
+            causation_id?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Delivery State
+             * @description 出站送达事实
+             */
+            delivery_state?: string | null;
+            /**
+             * Direction
+             * @description 交互方向
+             * @enum {string}
+             */
+            direction: "INBOUND" | "OUTBOUND";
+            /**
+             * Error Code
+             * @description 稳定错误分类
+             */
+            error_code?: string | null;
+            /**
+             * Event Id
+             * @description 事件 ID
+             */
+            event_id?: string | null;
+            /** Id */
+            id: number;
+            /**
+             * Method
+             * @description HTTP 方法
+             */
+            method: string;
+            /**
+             * Path
+             * @description 实际路径，不含 query
+             */
+            path: string;
+            /**
+             * Peer Address
+             * @description 对端地址
+             */
+            peer_address?: string | null;
+            /**
+             * Request Id
+             * @description 请求或 attempt ID
+             */
+            request_id?: string | null;
+            /**
+             * Response Time Ms
+             * @description 测得的交互耗时，毫秒
+             */
+            response_time_ms?: number | null;
+            /**
+             * Status Code
+             * @description 实际 HTTP 状态，无响应为 null
+             */
+            status_code?: number | null;
+            /**
+             * System Id
+             * @description 外部系统标识
+             */
+            system_id: string;
+            /**
+             * Trace Id
+             * @description Trace ID
+             */
+            trace_id?: string | null;
         };
         /** APIApplicationCreate */
         APIApplicationCreate: {
@@ -3399,96 +3401,6 @@ export interface components {
         Body_api_auth_applications_by_id_permissions_post: {
             /** Permission Ids */
             permission_ids: number[];
-        };
-        /**
-         * CallbackLogResponse
-         * @description 回调日志响应 Schema
-         */
-        CallbackLogResponse: {
-            /** Callback Type */
-            callback_type: string;
-            /** Causation Id */
-            causation_id: string | null;
-            /** Client Ip */
-            client_ip: string | null;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at: string;
-            /** Error Message */
-            error_message: string | null;
-            /** Event Id */
-            event_id: string | null;
-            /** Failure Stage */
-            failure_stage: string | null;
-            /** Id */
-            id: number;
-            /** Ingress Outcome */
-            ingress_outcome: string | null;
-            /** Request Body */
-            request_body: {
-                [key: string]: unknown;
-            };
-            /** Request Id */
-            request_id: string | null;
-            /** Response Status */
-            response_status: number;
-            /** Response Time Ms */
-            response_time_ms: number;
-            /** Subject Code */
-            subject_code: string;
-            /** Trace Id */
-            trace_id: string | null;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
-            /** User Agent */
-            user_agent: string | null;
-        };
-        /**
-         * CallbackLogSubjectResponse
-         * @description 回调主体维度回调日志列表响应。
-         */
-        CallbackLogSubjectResponse: {
-            /**
-             * Count
-             * @description 回调日志数量
-             */
-            count: number;
-            /**
-             * Items
-             * @description 回调日志列表
-             */
-            items: components["schemas"]["CallbackLogResponse"][];
-            /**
-             * Subject Code
-             * @description 回调主体编码
-             */
-            subject_code: string;
-        };
-        /**
-         * CallbackLogTraceResponse
-         * @description Trace 维度回调日志列表响应。
-         */
-        CallbackLogTraceResponse: {
-            /**
-             * Count
-             * @description 回调日志数量
-             */
-            count: number;
-            /**
-             * Items
-             * @description 回调日志列表
-             */
-            items: components["schemas"]["CallbackLogResponse"][];
-            /**
-             * Trace Id
-             * @description Trace ID
-             */
-            trace_id: string;
         };
         /** ConfirmationObservation */
         ConfirmationObservation: {
@@ -4095,14 +4007,12 @@ export interface components {
          * @enum {string}
          */
         LineType: "AUTO" | "MANUAL" | "HYBRID";
-        /** ListResponseData[APIAccessLogResponse] */
-        ListResponseData_APIAccessLogResponse_: ApiListData<components["schemas"]["APIAccessLogResponse"]>;
+        /** ListResponseData[APIAccessLogSummary] */
+        ListResponseData_APIAccessLogSummary_: ApiListData<components["schemas"]["APIAccessLogSummary"]>;
         /** ListResponseData[APIApplicationResponse] */
         ListResponseData_APIApplicationResponse_: ApiListData<components["schemas"]["APIApplicationResponse"]>;
         /** ListResponseData[AuditLogResponse] */
         ListResponseData_AuditLogResponse_: ApiListData<components["schemas"]["AuditLogResponse"]>;
-        /** ListResponseData[CallbackLogResponse] */
-        ListResponseData_CallbackLogResponse_: ApiListData<components["schemas"]["CallbackLogResponse"]>;
         /** ListResponseData[DeviceResponse] */
         ListResponseData_DeviceResponse_: ApiListData<components["schemas"]["DeviceResponse"]>;
         /** ListResponseData[PermissionResponse] */
@@ -4113,14 +4023,12 @@ export interface components {
         ListResponseData_UserResponse_: ApiListData<components["schemas"]["UserResponse"]>;
         /** ListResponseData[WorkLineResponse] */
         ListResponseData_WorkLineResponse_: ApiListData<components["schemas"]["WorkLineResponse"]>;
-        /** ListResponseSchemaModel[APIAccessLogResponse] */
-        ListResponseSchemaModel_APIAccessLogResponse_: ApiListResponse<components["schemas"]["APIAccessLogResponse"]>;
+        /** ListResponseSchemaModel[APIAccessLogSummary] */
+        ListResponseSchemaModel_APIAccessLogSummary_: ApiListResponse<components["schemas"]["APIAccessLogSummary"]>;
         /** ListResponseSchemaModel[APIApplicationResponse] */
         ListResponseSchemaModel_APIApplicationResponse_: ApiListResponse<components["schemas"]["APIApplicationResponse"]>;
         /** ListResponseSchemaModel[AuditLogResponse] */
         ListResponseSchemaModel_AuditLogResponse_: ApiListResponse<components["schemas"]["AuditLogResponse"]>;
-        /** ListResponseSchemaModel[CallbackLogResponse] */
-        ListResponseSchemaModel_CallbackLogResponse_: ApiListResponse<components["schemas"]["CallbackLogResponse"]>;
         /** ListResponseSchemaModel[DeviceResponse] */
         ListResponseSchemaModel_DeviceResponse_: ApiListResponse<components["schemas"]["DeviceResponse"]>;
         /** ListResponseSchemaModel[PermissionResponse] */
@@ -4971,12 +4879,6 @@ export interface components {
         ResponseSchemaModel_AuditLogResponse_: ApiResponse<components["schemas"]["AuditLogResponse"]>;
         /** ResponseSchemaModel[AuthMyResponse] */
         ResponseSchemaModel_AuthMyResponse_: ApiResponse<components["schemas"]["AuthMyResponse"]>;
-        /** ResponseSchemaModel[CallbackLogResponse] */
-        ResponseSchemaModel_CallbackLogResponse_: ApiResponse<components["schemas"]["CallbackLogResponse"]>;
-        /** ResponseSchemaModel[CallbackLogSubjectResponse] */
-        ResponseSchemaModel_CallbackLogSubjectResponse_: ApiResponse<components["schemas"]["CallbackLogSubjectResponse"]>;
-        /** ResponseSchemaModel[CallbackLogTraceResponse] */
-        ResponseSchemaModel_CallbackLogTraceResponse_: ApiResponse<components["schemas"]["CallbackLogTraceResponse"]>;
         /** ResponseSchemaModel[ConfirmationObservation] */
         ResponseSchemaModel_ConfirmationObservation_: ApiResponse<components["schemas"]["ConfirmationObservation"]>;
         /** ResponseSchemaModel[DebugTransportTaskCreated] */
@@ -6096,6 +5998,11 @@ export interface components {
              * @enum {string}
              */
             position_type: "RACK_POSITION" | "STATION";
+            /**
+             * Required
+             * @default true
+             */
+            required: boolean;
             /** Slot Key */
             slot_key: string;
         };
@@ -7368,75 +7275,6 @@ export interface operations {
             };
         };
     };
-    access_log_get: {
-        parameters: {
-            query?: {
-                /** @description 是否包含已删除记录（仅软删除模型生效） */
-                include_deleted?: boolean;
-                /** @description 关系加载深度 */
-                max_depth?: number;
-            };
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_APIAccessLogResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    access_log_query: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QueryOptions"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListResponseSchemaModel_APIAccessLogResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     api_auth_applications_post: {
         parameters: {
             query?: never;
@@ -8157,170 +7995,6 @@ export interface operations {
             };
         };
     };
-    logs_get: {
-        parameters: {
-            query?: {
-                /** @description 是否包含已删除记录（仅软删除模型生效） */
-                include_deleted?: boolean;
-                /** @description 关系加载深度 */
-                max_depth?: number;
-            };
-            header?: never;
-            path: {
-                id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    logs_query: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["QueryOptions"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ListResponseSchemaModel_CallbackLogResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    callback_logs_request_by_request_id_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                request_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    callback_logs_subject_by_subject_code_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                subject_code: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogSubjectResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    callback_logs_trace_by_trace_id_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                trace_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ResponseSchemaModel_CallbackLogTraceResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     callback_result_post: {
         parameters: {
             query?: never;
@@ -8955,6 +8629,70 @@ export interface operations {
                 };
                 content: {
                     "text/event-stream": string;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sys_apiaccesslog_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseSchemaModel_APIAccessLogResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sys_apiaccesslog_query: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueryOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListResponseSchemaModel_APIAccessLogSummary_"];
                 };
             };
             /** @description Validation Error */
@@ -10286,10 +10024,10 @@ export interface operations {
                         task_id: string;
                     } & {
                         [key: string]: unknown;
-                    }) & ({
+                    }) & (({
                         /** @constant */
                         plan_revision?: 1;
-                    } | ({
+                    } | unknown | unknown | unknown) | ({
                         plan_revision?: unknown;
                     } | unknown | unknown));
                     /** @enum {string} */

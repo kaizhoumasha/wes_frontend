@@ -104,13 +104,13 @@ describe('generate-api-types helpers', () => {
     const groups = groupEndpointsByModuleModel([
       makeEndpoint('/api/v1/wms/events', 'post'),
       makeEndpoint('/api/v1/callback/external', 'post'),
-      makeEndpoint('/api/v1/callback/logs', 'get'),
+      makeEndpoint('/api/v1/sys/api-access-logs', 'get'),
       makeEndpoint('/api/v1/admin/users', 'post')
     ])
 
     expect(groups.flatMap(group => group.endpoints.map(endpoint => endpoint.path))).toEqual([
       '/api/v1/admin/users',
-      '/api/v1/callback/logs'
+      '/api/v1/sys/api-access-logs'
     ])
   })
 
