@@ -24,11 +24,13 @@ export function useDetailState<TItem extends CrudPageEntity>() {
 
   // Request cancellation token (increments on each new request)
   let requestId = 0
+  let currentEntityId: number | null = null
 
   // Collapse state persistence (section key -> collapsed)
   const collapseStates = ref<Map<string, boolean>>(new Map())
 
   function openDetail(newItem: TItem): void {
+    currentEntityId = newItem.id
     item.value = newItem
     open.value = true
     error.value = null
@@ -42,6 +44,7 @@ export function useDetailState<TItem extends CrudPageEntity>() {
     id: number,
     fetcher: (id: number) => Promise<TItem>
   ): Promise<void> {
+    currentEntityId = id
     // Cancel any pending request by incrementing the request ID
     const currentRequestId = ++requestId
 
@@ -91,7 +94,8 @@ export function useDetailState<TItem extends CrudPageEntity>() {
   async function refreshDetail(
     fetcher: (id: number) => Promise<TItem>
   ): Promise<void> {
-    if (!item.value?.id) {
+    const id = currentEntityId
+    if (id === null) {
       return
     }
 
@@ -102,7 +106,7 @@ export function useDetailState<TItem extends CrudPageEntity>() {
     error.value = null
 
     try {
-      const result = await fetcher(item.value.id)
+      const result = await fetcher(id)
 
       // Check if this request is still the current one
       if (currentRequestId !== requestId) {

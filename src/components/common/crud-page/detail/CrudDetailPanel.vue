@@ -170,7 +170,7 @@ function handleClose(): void {
 }
 
 function handleRefresh(): void {
-  if (!isControlled.value && props.fetcher && internalItem.value?.id) {
+  if (!isControlled.value && props.fetcher) {
     void detailState.refreshDetail(props.fetcher)
   }
   emit('refresh')
