@@ -1,5 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
-import { API_AUTH_PERMISSIONS, SYS_PERMISSIONS } from '@/api/generated/permissions'
+import { SYS_PERMISSIONS } from '@/api/generated/permissions'
 
 export const logRoutes: RouteRecordRaw = {
   path: 'logs',
@@ -36,7 +36,7 @@ export const logRoutes: RouteRecordRaw = {
       meta: {
         requiresAuth: true,
         title: 'API 访问日志',
-        permission: API_AUTH_PERMISSIONS.apiaccesslog.page,
+        permission: SYS_PERMISSIONS.apiaccesslog.page,
         menu: {
           name: 'logs:api-access:menu',
           icon: 'ep:histogram',

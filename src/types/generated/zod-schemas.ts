@@ -1,4 +1,4 @@
-/** @openapi-sha256 0fd67af6e0cfb4375480f259db0b3270a4614cd30848e6a30ff9670b9b982a19 */
+/** @openapi-sha256 2053e122a339f5ac11861320ffc9343488f5e8884e0b1576f9773698a451af81 */
 /**
  * Zod Validation Schemas
  *
@@ -13,30 +13,72 @@ import { z } from 'zod'
 
 
 export const APIAccessLogResponseSchema = z.object({
-  /** App Id */
-  app_id: z.string().max(50),
-  /** App Name */
-  app_name: z.string().max(100),
+  /** Causation Id */
+  causation_id: z.union([z.string().max(200), z.null()]).optional(),
   /** Created At */
   created_at: z.string().datetime(),
-  /** Error Message */
-  error_message: z.union([z.string().max(1000), z.null()]).optional(),
+  /** Delivery State */
+  delivery_state: z.union([z.string().max(32), z.null()]).optional(),
+  /** Details */
+  details: z.union([z.record(z.any()), z.null()]).optional(),
+  /** Direction */
+  direction: z.enum(["INBOUND", "OUTBOUND"]),
+  /** Error Code */
+  error_code: z.union([z.string().max(100), z.null()]).optional(),
+  /** Event Id */
+  event_id: z.union([z.string().max(200), z.null()]).optional(),
   /** Id */
   id: z.number(),
-  /** Ip Address */
-  ip_address: z.string().max(50),
   /** Method */
   method: z.string().max(10),
   /** Path */
   path: z.string().max(500),
+  /** Peer Address */
+  peer_address: z.union([z.string().max(500), z.null()]).optional(),
   /** Request Id */
-  request_id: z.string().max(50),
+  request_id: z.union([z.string().max(100), z.null()]).optional(),
   /** Response Time Ms */
-  response_time_ms: z.number(),
+  response_time_ms: z.union([z.number().min(0), z.null()]).optional(),
   /** Status Code */
-  status_code: z.number(),
-  /** User Agent */
-  user_agent: z.union([z.string().max(500), z.null()]).optional(),
+  status_code: z.union([z.number(), z.null()]).optional(),
+  /** System Id */
+  system_id: z.string().max(64),
+  /** Trace Id */
+  trace_id: z.union([z.string().max(100), z.null()]).optional(),
+})
+
+
+export const APIAccessLogSummarySchema = z.object({
+  /** Causation Id */
+  causation_id: z.union([z.string().max(200), z.null()]).optional(),
+  /** Created At */
+  created_at: z.string().datetime(),
+  /** Delivery State */
+  delivery_state: z.union([z.string().max(32), z.null()]).optional(),
+  /** Direction */
+  direction: z.enum(["INBOUND", "OUTBOUND"]),
+  /** Error Code */
+  error_code: z.union([z.string().max(100), z.null()]).optional(),
+  /** Event Id */
+  event_id: z.union([z.string().max(200), z.null()]).optional(),
+  /** Id */
+  id: z.number(),
+  /** Method */
+  method: z.string().max(10),
+  /** Path */
+  path: z.string().max(500),
+  /** Peer Address */
+  peer_address: z.union([z.string().max(500), z.null()]).optional(),
+  /** Request Id */
+  request_id: z.union([z.string().max(100), z.null()]).optional(),
+  /** Response Time Ms */
+  response_time_ms: z.union([z.number().min(0), z.null()]).optional(),
+  /** Status Code */
+  status_code: z.union([z.number(), z.null()]).optional(),
+  /** System Id */
+  system_id: z.string().max(64),
+  /** Trace Id */
+  trace_id: z.union([z.string().max(100), z.null()]).optional(),
 })
 
 
@@ -359,82 +401,6 @@ export const BatchOperationResultSchema = z.object({
   success: z.number().min(0).optional().default(0),
   /** Total */
   total: z.number().min(0).optional().default(0),
-})
-
-
-/**
- * 回调日志响应 Schema
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const CallbackLogResponseSchema = z.object({
-  /** Callback Type */
-  callback_type: z.string(),
-  /** Causation Id */
-  causation_id: z.union([z.string(), z.null()]),
-  /** Client Ip */
-  client_ip: z.union([z.string(), z.null()]),
-  /** Created At */
-  created_at: z.string().datetime(),
-  /** Error Message */
-  error_message: z.union([z.string(), z.null()]),
-  /** Event Id */
-  event_id: z.union([z.string(), z.null()]),
-  /** Failure Stage */
-  failure_stage: z.union([z.string(), z.null()]),
-  /** Id */
-  id: z.number(),
-  /** Ingress Outcome */
-  ingress_outcome: z.union([z.string(), z.null()]),
-  /** Request Body */
-  request_body: z.record(z.any()),
-  /** Request Id */
-  request_id: z.union([z.string(), z.null()]),
-  /** Response Status */
-  response_status: z.number(),
-  /** Response Time Ms */
-  response_time_ms: z.number(),
-  /** Subject Code */
-  subject_code: z.string(),
-  /** Trace Id */
-  trace_id: z.union([z.string(), z.null()]),
-  /** Updated At */
-  updated_at: z.string().datetime(),
-  /** User Agent */
-  user_agent: z.union([z.string(), z.null()]),
-})
-
-
-/**
- * 回调主体维度回调日志列表响应。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const CallbackLogSubjectResponseSchema = z.object({
-  /** Count */
-  count: z.number().min(0),
-  /** Items */
-  items: z.array(z.lazy(() => CallbackLogResponseSchema)),
-  /** Subject Code */
-  subject_code: z.string(),
-})
-
-
-/**
- * Trace 维度回调日志列表响应。
- *
- * 从后端 OpenAPI 自动生成，请勿手动编辑
- * 如需添加自定义验证，请在扩展文件中修改
- */
-export const CallbackLogTraceResponseSchema = z.object({
-  /** Count */
-  count: z.number().min(0),
-  /** Items */
-  items: z.array(z.lazy(() => CallbackLogResponseSchema)),
-  /** Trace Id */
-  trace_id: z.string(),
 })
 
 
@@ -995,9 +961,9 @@ export const InboundEvidenceApplyStatusSchema = z.enum(["PENDING", "APPLIED", "I
 export const LineTypeSchema = z.enum(["AUTO", "MANUAL", "HYBRID"])
 
 
-export const ListResponseData_APIAccessLogResponse_Schema = z.object({
+export const ListResponseData_APIAccessLogSummary_Schema = z.object({
   /** Items */
-  items: z.array(z.lazy(() => APIAccessLogResponseSchema)).optional(),
+  items: z.array(z.lazy(() => APIAccessLogSummarySchema)).optional(),
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
@@ -1022,18 +988,6 @@ export const ListResponseData_APIApplicationResponse_Schema = z.object({
 export const ListResponseData_AuditLogResponse_Schema = z.object({
   /** Items */
   items: z.array(z.lazy(() => AuditLogResponseSchema)).optional(),
-  /** Limit */
-  limit: z.number().min(0).optional().default(0),
-  /** Offset */
-  offset: z.number().min(0).optional().default(0),
-  /** Total */
-  total: z.number().min(0).optional().default(0),
-})
-
-
-export const ListResponseData_CallbackLogResponse_Schema = z.object({
-  /** Items */
-  items: z.array(z.lazy(() => CallbackLogResponseSchema)).optional(),
   /** Limit */
   limit: z.number().min(0).optional().default(0),
   /** Offset */
@@ -1103,11 +1057,11 @@ export const ListResponseData_WorkLineResponse_Schema = z.object({
 })
 
 
-export const ListResponseSchemaModel_APIAccessLogResponse_Schema = z.object({
+export const ListResponseSchemaModel_APIAccessLogSummary_Schema = z.object({
   /** Code */
   code: z.string().optional().default("1000"),
   /** 响应数据 */
-  data: z.union([z.lazy(() => ListResponseData_APIAccessLogResponse_Schema), z.null()]).optional(),
+  data: z.union([z.lazy(() => ListResponseData_APIAccessLogSummary_Schema), z.null()]).optional(),
   /** Message */
   message: z.string().optional().default("操作成功"),
   /** Timestamp */
@@ -1132,18 +1086,6 @@ export const ListResponseSchemaModel_AuditLogResponse_Schema = z.object({
   code: z.string().optional().default("1000"),
   /** 响应数据 */
   data: z.union([z.lazy(() => ListResponseData_AuditLogResponse_Schema), z.null()]).optional(),
-  /** Message */
-  message: z.string().optional().default("操作成功"),
-  /** Timestamp */
-  timestamp: z.string().optional(),
-})
-
-
-export const ListResponseSchemaModel_CallbackLogResponse_Schema = z.object({
-  /** Code */
-  code: z.string().optional().default("1000"),
-  /** 响应数据 */
-  data: z.union([z.lazy(() => ListResponseData_CallbackLogResponse_Schema), z.null()]).optional(),
   /** Message */
   message: z.string().optional().default("操作成功"),
   /** Timestamp */
@@ -2838,6 +2780,8 @@ export const WorkLinePositionSlotSchema = z.object({
   location_type: z.string(),
   /** Position Type */
   position_type: z.enum(["RACK_POSITION", "STATION"]),
+  /** Required */
+  required: z.boolean().optional().default(true),
   /** Slot Key */
   slot_key: z.string(),
 })

@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { nextTick, defineComponent, ref, h } from 'vue'
 import CrudDetailPanel from '@/components/common/crud-page/detail/CrudDetailPanel.vue'
 import type { CrudPageEntity } from '@/components/common/crud-page/types'
@@ -262,6 +262,59 @@ describe('CrudDetailPanel', () => {
         await nextTick()
 
         expect(wrapper.find('.mock-drawer').exists()).toBe(true)
+      })
+    })
+
+    describe('refresh routing', () => {
+      it('should retry an uncontrolled initial failure without an item', async () => {
+        const entity = { id: 42, name: 'Recovered' }
+        const fetcher = vi.fn<(id: number) => Promise<TestEntity>>()
+          .mockRejectedValueOnce(new Error('Network error'))
+          .mockResolvedValueOnce(entity)
+        const wrapper = createWrapper({ props: { fetcher } })
+        const vm = wrapper.vm as unknown as {
+          openWithId: (id: number) => Promise<void>
+        }
+
+        await vm.openWithId(42)
+        await nextTick()
+        const body = wrapper.findComponent(MockDetailBody)
+        expect(body.props('item')).toBeNull()
+        expect(body.props('error')?.message).toBe('Network error')
+
+        body.props('onRefresh')()
+        await flushPromises()
+
+        expect(fetcher.mock.calls).toEqual([[42], [42]])
+        expect(body.props('item')).toEqual(entity)
+        expect(body.props('error')).toBeNull()
+        expect(wrapper.emitted('refresh')).toHaveLength(1)
+      })
+
+      it('should not fetch before an uncontrolled entity is opened', async () => {
+        const fetcher = vi.fn<(id: number) => Promise<TestEntity>>()
+        const wrapper = createWrapper({ props: { fetcher } })
+        const vm = wrapper.vm as unknown as { refresh: () => void }
+
+        vm.refresh()
+        await flushPromises()
+
+        expect(fetcher).not.toHaveBeenCalled()
+        expect(wrapper.emitted('refresh')).toHaveLength(1)
+      })
+
+      it('should emit refresh without fetching in controlled mode', async () => {
+        const fetcher = vi.fn<(id: number) => Promise<TestEntity>>()
+        const wrapper = createWrapper({
+          props: { fetcher, open: true, item: null, error: new Error('Network error') }
+        })
+        const body = wrapper.findComponent(MockDetailBody)
+
+        body.props('onRefresh')()
+        await flushPromises()
+
+        expect(fetcher).not.toHaveBeenCalled()
+        expect(wrapper.emitted('refresh')).toHaveLength(1)
       })
     })
 

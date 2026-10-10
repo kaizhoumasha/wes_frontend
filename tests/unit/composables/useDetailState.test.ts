@@ -128,6 +128,24 @@ describe('useDetailState', () => {
       expect(state.item.value?.name).toBe('Updated')
     })
 
+    it('should retry the same ID after the initial fetch fails', async () => {
+      const entity = { id: 42, name: 'Recovered' }
+      const fetcher = vi.fn<(id: number) => Promise<TestEntity>>()
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce(entity)
+
+      await state.openDetailById(42, fetcher)
+      expect(state.item.value).toBeNull()
+      expect(state.error.value?.message).toBe('Network error')
+
+      await state.refreshDetail(fetcher)
+
+      expect(fetcher.mock.calls).toEqual([[42], [42]])
+      expect(state.item.value).toEqual(entity)
+      expect(state.error.value).toBeNull()
+      expect(state.loading.value).toBe(false)
+    })
+
     it('should do nothing if no current item', async () => {
       const fetcher = createMockFetcher(mockEntity)
 

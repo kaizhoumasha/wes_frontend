@@ -27,7 +27,7 @@ describe('contract generation endpoint noise', () => {
     }
   })
 
-  it('keeps system-owned paths out of browser modules without hiding callback administration', () => {
+  it('keeps system-owned paths out of browser modules and exposes unified sys log reads', () => {
     const moduleRoot = join(process.cwd(), 'src/api/modules')
     const moduleSources = readdirSync(moduleRoot)
       .filter(fileName => fileName.endsWith('.ts'))
@@ -38,7 +38,10 @@ describe('contract generation endpoint noise', () => {
     expect(moduleSources).not.toContain("'/api/v1/callback/event'")
     expect(moduleSources).not.toContain("'/api/v1/callback/external'")
     expect(moduleSources).not.toContain("'/api/v1/callback/result'")
-    expect(moduleSources).toContain('/api/v1/callback/logs')
+    expect(moduleSources).toContain('/api/v1/sys/api-access-logs/query')
+    expect(moduleSources).toContain('/api/v1/sys/api-access-logs/{id}')
+    expect(moduleSources).not.toContain('/api/v1/callback/logs')
+    expect(moduleSources).not.toContain('/api/v1/api_auth/access-log')
   })
 
   it('generates current plane and active-object metadata', () => {

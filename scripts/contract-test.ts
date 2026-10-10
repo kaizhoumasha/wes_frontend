@@ -198,8 +198,11 @@ function assertGeneratedArtifacts(openApiSha256: string, paths: Record<string, u
   const moduleFiles = walkTypeScriptFiles(resolve(FRONTEND_ROOT, 'src/api/modules'))
   const moduleSources = moduleFiles.map(path => readFileSync(path, 'utf-8')).join('\n')
   assertNoSystemOwnedPathsInModules(moduleSources, paths)
-  if (!moduleSources.includes('/api/v1/callback/logs')) {
-    throw new Error('callback 管理读取端点被错误过滤')
+  if (
+    !moduleSources.includes('/api/v1/sys/api-access-logs/query') ||
+    !moduleSources.includes('/api/v1/sys/api-access-logs/{id}')
+  ) {
+    throw new Error('统一 sys 日志管理读取端点被错误过滤')
   }
 
   const generatedFiles = [

@@ -102,8 +102,8 @@ describe('OpenAPI sync helpers', () => {
     expect(isBrowserOwnedEndpoint('/api/v1/callback/external')).toBe(false)
     expect(isBrowserOwnedEndpoint('/api/v1/callback/result')).toBe(false)
 
-    expect(isBrowserOwnedEndpoint('/api/v1/callback/logs')).toBe(true)
-    expect(isBrowserOwnedEndpoint('/api/v1/callback/logs/123')).toBe(true)
+    expect(isBrowserOwnedEndpoint('/api/v1/sys/api-access-logs')).toBe(true)
+    expect(isBrowserOwnedEndpoint('/api/v1/sys/api-access-logs/123')).toBe(true)
     expect(isBrowserOwnedEndpoint('/api/v1/admin/users')).toBe(true)
   })
 })

@@ -20,4 +20,9 @@ describe('log duration formatters', () => {
   it('keeps sub-millisecond api access values readable', () => {
     expect(formatDurationFromMilliseconds(0.345)).toBe('0.35 ms')
   })
+
+  it('keeps a zero interaction duration and renders absent metadata as a dash', () => {
+    expect(formatDurationFromMilliseconds(0)).toBe('0 ms')
+    expect(formatDurationFromMilliseconds(null)).toBe('—')
+  })
 })
