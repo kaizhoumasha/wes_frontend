@@ -81,7 +81,7 @@ pnpm export:release-consumer
 
 ## API 访问日志
 
-在「日志管理 → API 访问日志」（`/logs/api-access`）查看 WMS、ECS 与 WES 的双向外部 HTTP 交互。按记录时间、系统和方向筛选，再通过 HTTP 状态、交互耗时和路径定位单次尝试；列表与详情分别需要 `sys:apiaccesslog:list`、`sys:apiaccesslog:detail` 权限。
+在「日志中心 → API 访问日志」（`/logs/api-access`）查看 WMS、ECS 与 WES 的双向外部 HTTP 交互。按记录时间、系统和方向筛选，再通过 HTTP 状态、交互耗时和路径定位单次尝试；列表与详情分别需要 `sys:apiaccesslog:list`、`sys:apiaccesslog:detail` 权限。
 
 点击「查看详情」在全局抽屉中查看交互摘要、追踪与地址、已保存快照。详情加载失败可重试；未保存快照会显示说明，出站记录本次仅保存元数据。「无 HTTP 响应」与 HTTP 4xx/5xx 分开展示，不能据此推断业务终态或物理失败。
 
