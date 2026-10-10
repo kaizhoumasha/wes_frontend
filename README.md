@@ -79,6 +79,14 @@ pnpm export:release-consumer
 
 `contract:freeze` 是唯一需要后端 checkout 的显式冻结步骤，会原子更新 OpenAPI 与权限 canonical 快照。后续生成、验证和 consumer artifact 导出均只读取前端仓库已提交快照，可离线执行。
 
+## API 访问日志
+
+在「日志管理 → API 访问日志」（`/logs/api-access`）查看 WMS、ECS 与 WES 的双向外部 HTTP 交互。按记录时间、系统和方向筛选，再通过 HTTP 状态、交互耗时和路径定位单次尝试；列表与详情分别需要 `sys:apiaccesslog:list`、`sys:apiaccesslog:detail` 权限。
+
+点击「查看详情」在全局抽屉中查看交互摘要、追踪与地址、已保存快照。详情加载失败可重试；未保存快照会显示说明，出站记录本次仅保存元数据。「无 HTTP 响应」与 HTTP 4xx/5xx 分开展示，不能据此推断业务终态或物理失败。
+
+这些诊断记录在业务处理后尽力写入，默认保留 7 天，可能延迟或漏记；查询为空不能证明请求未到达。普通页面请求不在采集范围，审计日志与可靠消息收据/Evidence 继续按各自职责处理。
+
 ## WMS 联调诊断
 
 在「运维工具 → WMS 联调诊断」打开控制台（`/ops/wms-diagnostics`）。页面展示 WES 观察到的 WMS 双向 Operation 请求、响应和校验日志；查询、实时订阅与详情读取分别受权限控制。

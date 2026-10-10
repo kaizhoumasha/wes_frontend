@@ -589,9 +589,14 @@ const handleSubmit = async () => {
 </template>
 
 <script setup lang="ts">
-import { datePickerToApi } from '@/utils/element-plus-config'
+import { ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import { apiAccessLogsApiMethods } from '@/api/modules/apiAccessLogs'
+import { useTimezoneStore } from '@/stores/timezone'
+import { toApiTimeFromTimezone } from '@/utils/timezone'
 
-const timeRange = ref<[string, string]>([])
+const timeRange = ref<[string, string] | null>(null)
+const timezoneStore = useTimezoneStore()
 
 const handleSearch = async () => {
   if (!timeRange.value || timeRange.value.length !== 2) {
@@ -599,13 +604,30 @@ const handleSearch = async () => {
     return
   }
 
-  // 转换为 UTC 时间
-  const params = {
-    start_time: datePickerToApi(timeRange.value[0]),
-    end_time: datePickerToApi(timeRange.value[1])
-  }
-
-  const data = await apiClient.get('/api/v1/callback/logs', { params })
+  // 按配置时区转换为 UTC，通过现有 QueryOptions 查询记录时间。
+  const data = await apiAccessLogsApiMethods.query({
+    filters: {
+      couple: 'and',
+      conditions: [
+        {
+          field: 'created_at',
+          op: 'ge',
+          value: toApiTimeFromTimezone(timeRange.value[0], timezoneStore.currentTimezone)
+        },
+        {
+          field: 'created_at',
+          op: 'le',
+          value: toApiTimeFromTimezone(timeRange.value[1], timezoneStore.currentTimezone)
+        }
+      ]
+    },
+    sort: [
+      { field: 'created_at', order: 'desc' },
+      { field: 'id', order: 'desc' }
+    ],
+    offset: 0,
+    limit: 20
+  })
   // 处理查询结果...
 }
 </script>
